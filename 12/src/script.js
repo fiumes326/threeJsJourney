@@ -38,7 +38,7 @@ fontLoader.load(
 
         // Text
         const textGeometry = new TextGeometry(
-            'Hello Three.js',
+            'Frankie Fiumes',
             {
                 font: font,
                 size: 0.5,
@@ -57,6 +57,7 @@ fontLoader.load(
         scene.add(text)
 
         // Donuts
+        const donutCollection = []
         const donutGeometry = new THREE.TorusGeometry(0.3, 0.2, 32, 64)
 
         for(let i = 0; i < 100; i++)
@@ -70,6 +71,7 @@ fontLoader.load(
             const scale = Math.random()
             donut.scale.set(scale, scale, scale)
 
+            donutCollection.push(donut)
             scene.add(donut)
         }
     }
@@ -129,6 +131,12 @@ const clock = new THREE.Clock()
 const tick = () =>
 {
     const elapsedTime = clock.getElapsedTime()
+    if (typeof donutCollection != 'undefined') {
+        donutCollection.forEach((donut) => {
+            donut.rotation.x = elapsedTime * 0.1
+            donut.rotation.y = elapsedTime * 0.1
+        })
+    }
 
     // Update controls
     controls.update()
