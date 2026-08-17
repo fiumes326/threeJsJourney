@@ -29,6 +29,8 @@ matcapTexture.colorSpace = THREE.SRGBColorSpace
  */
 const fontLoader = new FontLoader()
 
+const donutCollection = []
+
 fontLoader.load(
     '/fonts/helvetiker_regular.typeface.json',
     (font) =>
@@ -57,7 +59,6 @@ fontLoader.load(
         scene.add(text)
 
         // Donuts
-        const donutCollection = []
         const donutGeometry = new THREE.TorusGeometry(0.3, 0.2, 32, 64)
 
         for(let i = 0; i < 100; i++)
@@ -70,8 +71,12 @@ fontLoader.load(
             donut.rotation.y = Math.random() * Math.PI
             const scale = Math.random()
             donut.scale.set(scale, scale, scale)
-
-            donutCollection.push(donut)
+            let data = {
+                "rotation_directionX": Math.floor(Math.random() * 2),
+                "rotation_directionY": Math.floor(Math.random() * 2),
+                "donut": donut
+            }
+            donutCollection.push(data)
             scene.add(donut)
         }
     }
@@ -132,11 +137,22 @@ const tick = () =>
 {
     const elapsedTime = clock.getElapsedTime()
     if (typeof donutCollection != 'undefined') {
-        donutCollection.forEach((donut) => {
-            donut.rotation.x = elapsedTime * 0.1
-            donut.rotation.y = elapsedTime * 0.1
+        console.log("animating")
+        donutCollection.forEach((data) => {
+            const donut = data.donut
+            if (data.rotation_directionX === 0) {
+                donut.rotation.x = elapsedTime * .1
+            } else {
+                donut.rotation.x = elapsedTime * -.1
+            }
+            if (data.rotation_directionY === 0) {
+                donut.rotation.y = elapsedTime * .1
+            } else {
+                donut.rotation.y = elapsedTime * -.1
+            }
         })
     }
+  
 
     // Update controls
     controls.update()
