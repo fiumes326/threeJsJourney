@@ -54,6 +54,8 @@ fontLoader.load(
             }
         )
         textGeometry.center()
+        textGeometry.computeBoundingBox()
+        console.log(textGeometry.boundingBox)
 
         const text = new THREE.Mesh(textGeometry, material)
         scene.add(text)
@@ -69,6 +71,11 @@ fontLoader.load(
             donut.position.z = (Math.random() - 0.5) * 10
             donut.rotation.x = Math.random() * Math.PI
             donut.rotation.y = Math.random() * Math.PI
+            const distance = donut.position.distanceTo(text.position)
+            if (distance < 1.5) {
+                i--
+                continue
+            }
             const scale = Math.random()
             donut.scale.set(scale, scale, scale)
             let data = {
@@ -137,7 +144,6 @@ const tick = () =>
 {
     const elapsedTime = clock.getElapsedTime()
     if (typeof donutCollection != 'undefined') {
-        console.log("animating")
         donutCollection.forEach((data) => {
             const donut = data.donut
             if (data.rotation_directionX === 0) {
