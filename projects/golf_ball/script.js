@@ -32,6 +32,7 @@ gltfLoader.load('./static/scene.gltf', (gltf) => {
 
 // Grass textures
 const grassBaseColor = textureLoader.load("./static/textures/Poliigon_GrassPatchyGround_4585_BaseColor.png")
+const grassAlpha = textureLoader.load("./static/textures/alpha.jpg")
 const grassRoughness = textureLoader.load("./static/textures/Poliigon_GrassPatchyGround_4585_Roughness.png")
 const grassMetalness = textureLoader.load("./static/textures/Poliigon_GrassPatchyGround_4585_Metallic.png")
 const grassNormal = textureLoader.load("./static/textures/Poliigon_GrassPatchyGround_4585_Normal.png")
@@ -42,11 +43,15 @@ grassBaseColor.colorSpace = THREE.SRGBColorSpace
 const grassGeometry = new THREE.PlaneGeometry(3, 3, 256, 256)
 const grassMaterial = new THREE.MeshStandardMaterial({
     map: grassBaseColor,
+    alphaMap: grassAlpha,
     roughnessMap: grassRoughness,
     metalnessMap: grassMetalness,
     normalMap: grassNormal,
     displacementMap: grassDisplacememt,
-    displacementBias: -.5
+    displacementBias: -.5,
+    transparent: true,
+    alphaTest: .5,
+    side: THREE.DoubleSide
 })
 const grassMesh = new THREE.Mesh(grassGeometry, grassMaterial)
 grassMesh.rotation.x = -Math.PI / 2
@@ -54,13 +59,13 @@ grassMesh.rotation.z = Math.PI / 4
 scene.add(grassMesh)
 
 const sizes = {
-    width: window.innerWidth / 2,
+    width: window.innerWidth,
     height: window.innerHeight
 }
 window.addEventListener('resize', () =>
 {
     // Update sizes
-    sizes.width = window.innerWidth / 2
+    sizes.width = window.innerWidth
     sizes.height = window.innerHeight
 
     // Update camera
@@ -74,7 +79,8 @@ window.addEventListener('resize', () =>
 
 const camera = new THREE.PerspectiveCamera(75, sizes.width/sizes.height, .1, 100)
 camera.position.z=2
-camera.position.y=1
+camera.position.y=.45
+camera.position.x=-1
 
 const controls = new OrbitControls( camera, myCanvas );
 
@@ -89,6 +95,9 @@ const renderer = new THREE.WebGLRenderer({
     canvas: myCanvas,
     alpha: true
 })
+THREE.ColorManagement.enabled = true;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.setClearColor(0x00FF00, 0); 
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
@@ -98,6 +107,7 @@ const bounce1Duration = 3
 const bounce2Duration = 2
 const spinBackDuration = 2
 let rotationConstant = .05
+let calledTitleAnimation = false
 //used for rollback
 let previousX = -1
 
@@ -169,11 +179,17 @@ const tick = () => {
             const position = spinBack(-1, 0, previousX, spinBackTime, spinBackDuration)
             golfBall.position.x = position.x
             golfBall.rotation.z -= position.rotation
-
             previousX = position.x
+
+            if (!calledTitleAnimation) {
+                const mainTitle = document.getElementById("mainTitle")
+                if (mainTitle) {
+                    mainTitle.classList.add("text-in")
+                }
+                calledTitleAnimation = true
+            }
         }
     }
-
     renderer.render(scene, camera);
 }
 tick()
