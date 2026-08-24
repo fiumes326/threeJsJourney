@@ -3,7 +3,6 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TextureLoader } from 'three';
 import { TIFFLoader } from 'three/examples/jsm/loaders/TIFFLoader.js';
-import { VolumeNodeMaterial } from 'three/webgpu';
 const myCanvas = document.getElementById("myCanvas")
 
 const scene = new THREE.Scene()
@@ -81,8 +80,8 @@ const camera = new THREE.PerspectiveCamera(75, sizes.width/sizes.height, .1, 100
 camera.position.z=2
 camera.position.y=.45
 camera.position.x=-1
+camera.lookAt(new THREE.Vector3(0, 0, 0))
 
-const controls = new OrbitControls( camera, myCanvas );
 
 const directionalLight = new THREE.DirectionalLight(0xffffff, 7) 
 directionalLight.position.set(5, 5, 5) 
