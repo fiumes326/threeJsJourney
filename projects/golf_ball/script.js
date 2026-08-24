@@ -7,8 +7,7 @@ import { VolumeNodeMaterial } from 'three/webgpu';
 const myCanvas = document.getElementById("myCanvas")
 
 const scene = new THREE.Scene()
-const axesHelper = new THREE.AxesHelper(5)
-scene.add(axesHelper)
+
 
 const golfBall = new THREE.Group()
 let golfBallRadius = null
@@ -55,13 +54,13 @@ grassMesh.rotation.z = Math.PI / 4
 scene.add(grassMesh)
 
 const sizes = {
-    width: window.innerWidth,
+    width: window.innerWidth / 2,
     height: window.innerHeight
 }
 window.addEventListener('resize', () =>
 {
     // Update sizes
-    sizes.width = window.innerWidth
+    sizes.width = window.innerWidth / 2
     sizes.height = window.innerHeight
 
     // Update camera
@@ -87,7 +86,8 @@ const ambientLight = new THREE.AmbientLight(0xffffff,.5)
 scene.add(ambientLight)
 
 const renderer = new THREE.WebGLRenderer({
-    canvas: myCanvas
+    canvas: myCanvas,
+    alpha: true
 })
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
