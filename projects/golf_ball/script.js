@@ -11,7 +11,6 @@ const axesHelper = new THREE.AxesHelper(5)
 scene.add(axesHelper)
 
 const golfBall = new THREE.Group()
-const golfBallModel = new THREE.Group()
 let golfBallRadius = null
 // My loaders
 const gltfLoader = new GLTFLoader()
@@ -26,8 +25,7 @@ gltfLoader.load('./static/scene.gltf', (gltf) => {
     const size = boundingBox.getSize(new THREE.Vector3())
     golfBallRadius = size.y / 2
     model.position.y -= center.y
-    golfBallModel.add(model)
-    golfBall.add(golfBallModel)
+    golfBall.add(model)
     golfBall.position.set(2, 2, 0)
     scene.add(golfBall)
 
@@ -95,11 +93,17 @@ renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
 const clock = new THREE.Clock();
-const fallDuration = 3
-const compression1Duration = .6
-const bounce1Duration = 3 
-let xConstant = .1
-let rotationConstant = .02
+const fallDuration = 1.2
+const bounce1Duration = 3
+const bounce2Duration = 2
+const spinBackDuration = 2
+let rotationConstant = .05
+//used for rollback
+let previousX = -1
+
+// Friction-like curve: fast at first, then slows near the end.
+const frictionCurve = (t) => 1 - Math.pow(1 - t, 2)
+
 // My falling function
 const falling=(xStart, xEnd, yStart, yEnd, time, duration) => {
     const progress = Math.min(time / duration, 1)
@@ -118,37 +122,55 @@ const bouncing = (xStart, xEnd, height, time, duration) => {
         y:  (Math.sin(Math.PI * (time/duration)) * height) + golfBallRadius
     }
 }
-// my ball compression function
-const ballCompressing = (duration, time) => {
+
+const spinBack = (xStart, xEnd, previousX, time, duration) => {
     const progress = Math.min(time / duration, 1)
+    const curvedProgress = frictionCurve(progress)
+    const newX = THREE.MathUtils.lerp(xStart, xEnd, curvedProgress)
     return {
-        yScale: 1 - .1 * Math.sin(Math.PI * progress)
+        x: newX,
+        rotation: ( newX - previousX ) / golfBallRadius
     }
 }
+
 const tick = () => {
 
     requestAnimationFrame(tick);
     const time = clock.getElapsedTime();
    
     if (golfBallRadius !== null) {
+        // my fall animation
         if (time < fallDuration) {
-            const position = falling(2, 1, 2, golfBallRadius, time, fallDuration)
+            const position = falling(2, 1, 1, golfBallRadius, time, fallDuration)
             golfBall.position.x = position.x
             golfBall.position.y = position.y
-            golfBallModel.rotation.z -= Math.PI * rotationConstant
+            golfBall.rotation.z -= Math.PI * rotationConstant
         }
-        if (time >= fallDuration && time <= fallDuration + compression1Duration) {
-            rotationConstant = .01
-            const compressionTime = time - fallDuration
-            const data = ballCompressing(compression1Duration, compressionTime)
-            golfBall.scale.y = data.yScale
-        }
-        if (time >= fallDuration + compression1Duration && time < fallDuration + bounce1Duration + compression1Duration){
-            const bounceTime = time - fallDuration - compression1Duration
-            const position = bouncing(1, -.5, .75, bounceTime, bounce1Duration)
+        // my first bounce animation
+        if (time >= fallDuration && time < fallDuration + bounce1Duration){
+            rotationConstant = .025
+            const bounce1Time = time - fallDuration
+            const position = bouncing(1, -.5, .75, bounce1Time, bounce1Duration)
             golfBall.position.x = position.x
             golfBall.position.y = position.y
-            golfBallModel.rotation.z -= Math.PI * rotationConstant
+            golfBall.rotation.z -= Math.PI * rotationConstant
+        }
+        // my second bounce animation
+        if ( time >= fallDuration + bounce1Duration && time < fallDuration + bounce1Duration + bounce2Duration){
+            rotationConstant = .015
+            const bounce2Time = time - fallDuration - bounce1Duration
+            const position = bouncing(-.5, -1, .55, bounce2Time, bounce2Duration)
+            golfBall.position.x = position.x
+            golfBall.position.y = position.y
+            golfBall.rotation.z -= Math.PI * rotationConstant
+        }
+        if ( time >=  fallDuration + bounce1Duration + bounce2Duration && time < fallDuration + bounce1Duration + bounce2Duration + spinBackDuration){
+            const spinBackTime = time - fallDuration - bounce1Duration - bounce2Duration
+            const position = spinBack(-1, 0, previousX, spinBackTime, spinBackDuration)
+            golfBall.position.x = position.x
+            golfBall.rotation.z -= position.rotation
+
+            previousX = position.x
         }
     }
 
